@@ -11,6 +11,7 @@ layout(set = 0, binding = 0) uniform UboScene
 
 layout(set = 0, binding = 1) uniform UboObject
 {
+	vec3 lights[9];
 	mat4 transform;
 	float brightness;
 } object;

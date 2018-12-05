@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
-#include <SPIRV/GlslangToSpv.h>
 #include <fstream>
+#include <SPIRV/GlslangToSpv.h>
 
 #if defined(WIN32)
 #include <io.h>
@@ -34,6 +34,13 @@ typedef enum VkShaderStageFlagBits {
 } VkShaderStageFlagBits;
 typedef uint32_t VkShaderStageFlags;
 #endif
+
+std::string ReadFile(const std::string &fileName)
+{
+	std::ifstream t(fileName);
+	std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
+	return str;
+}
 
 std::vector<std::string> StringSplit(const std::string &str, const std::string &sep)
 {
@@ -68,7 +75,7 @@ struct Uniform
 	std::string ToString() const
 	{
 		std::stringstream result;
-		result << "Uniform(name '" << m_name << "', binding " << m_binding << ", offset " << m_offset << ", size " << m_size << ", glType " << m_glType << ")";
+		result << "Uniform(name '" << m_name << "', binding " << m_binding << ", offset " << m_offset << ", size " << m_size << ", readonly " << m_readOnly << ", writeonly " << m_writeOnly << ", type " << m_glType << ")";
 		return result.str();
 	}
 };
@@ -85,7 +92,7 @@ struct UniformBlock
 	std::string m_name;
 	int32_t m_binding;
 	int32_t m_size;
-	VkShaderStageFlags m_stageFlags; // VkShaderStageFlags
+	VkShaderStageFlags m_stageFlags;
 	Type m_type;
 	std::vector<Uniform> m_uniforms;
 
@@ -108,7 +115,7 @@ struct VertexAttribute
 	std::string ToString() const
 	{
 		std::stringstream result;
-		result << "VertexAttribute(name '" << m_name << "', set " << m_set << "', location " << m_location << ", size " << m_size << ", glType " << m_glType << ")";
+		result << "VertexAttribute(name '" << m_name << "', set " << m_set << "', location " << m_location << ", size " << m_size << ", type " << m_glType << ")";
 		return result.str();
 	}
 };
@@ -162,35 +169,6 @@ struct ShaderReflection
 	}
 };
 
-int32_t ComputeSizeTType(const glslang::TType *type)
-{
-//	return sizeof(float) * type->computeNumComponents();
-	int32_t components = 0;
-
-	if (type->getBasicType() == glslang::TBasicType::EbtStruct || type->getBasicType() == glslang::TBasicType::EbtBlock)
-	{
-		for (auto &tl : *type->getStruct())
-		{
-			components += tl.type->computeNumComponents();
-		}
-	}
-	else if (type->getMatrixCols())
-	{
-		components = type->getMatrixCols() * type->getMatrixRows();
-	}
-	else
-	{
-		components = type->getVectorSize();
-	}
-
-	//	if (type->getArraySizes() != nullptr)
-	//	{
-	//		components *= type->getArraySizes()->getCumulativeSize();
-	//	}
-
-	return sizeof(float) * components;
-}
-
 void LoadVertexAttribute(ShaderReflection &reflection, const glslang::TProgram &program, const VkShaderStageFlags &stageFlag, const int32_t &i)
 {
 	for (auto &vertexAttribute : reflection.m_vertexAttributes)
@@ -201,12 +179,12 @@ void LoadVertexAttribute(ShaderReflection &reflection, const glslang::TProgram &
 		}
 	}
 
-	auto &qualifier = program.getAttributeTType(i)->getQualifier();
+	auto qualifier = program.getAttributeTType(i)->getQualifier();
 	reflection.m_vertexAttributes.emplace_back(VertexAttribute{
 		program.getAttributeName(i),
 		qualifier.layoutSet,
-		qualifier.layoutLocation,
-		static_cast<int32_t>(sizeof(float) * program.getAttributeTType(i)->getVectorSize()),
+		program.getAttributeTType(i)->getQualifier().layoutLocation, // FIXME
+		static_cast<int32_t>(sizeof(float) * program.getAttributeTType(i)->getVectorSize()), // TODO: Not always of float size.
 		program.getAttributeType(i)
 	});
 }
@@ -227,7 +205,7 @@ void LoadUniform(ShaderReflection &reflection, const glslang::TProgram &program,
 						splitName.at(1),
 						program.getUniformBinding(i),
 						program.getUniformBufferOffset(i),
-						ComputeSizeTType(program.getUniformTType(i)),
+						-1, // static_cast<int32_t>(sizeof(float) * program.getUniformArraySize(i) * program.getUniformTType(i)->computeNumComponents()), // TODO: Not always float size.
 						program.getUniformType(i),
 						false,
 						false,
@@ -279,7 +257,7 @@ void LoadUniformBlock(ShaderReflection &reflection, const glslang::TProgram &pro
 		type = UniformBlock::Type::STORAGE;
 	}
 
-	if (program.getUniformBlockTType(i)->getQualifier().layoutPushConstant)
+	if (program.getUniformBlockTType(i)->getQualifier().layoutPushConstant) // FIXME
 	{
 		type = UniformBlock::Type::PUSH;
 	}
@@ -312,14 +290,6 @@ void LoadProgram(ShaderReflection &reflection, const glslang::TProgram &program,
 	{
 		LoadVertexAttribute(reflection, program, stageFlag, i);
 	}
-}
-
-std::string ReadFile(const std::string &fileName)
-{
-	std::ifstream t(fileName);
-	std::string str((std::istreambuf_iterator<char>(t)),
-	                std::istreambuf_iterator<char>());
-	return str;
 }
 
 TBuiltInResource GetResources()

@@ -4,9 +4,15 @@
 
 layout(set = 0, binding = 1) uniform UboObject
 {
+	vec3 lights[9];
 	mat4 transform;
 	float brightness;
 } object;
+
+layout(push_constant) uniform PushLights
+{
+	float effect[9];
+} lights;
 
 layout(set = 0, binding = 2) uniform sampler2D samplerDiffuse;
 
@@ -16,14 +22,17 @@ layout(location = 2) in vec3 inCameraPos;
 
 layout(location = 0) out vec4 outColour;
 
-const vec3 lightDirection = vec3(0.8f, 0.9f, 0.2f);
-
 void main()
 {
 	vec3 diffuse = texture(samplerDiffuse, inUv).rgb;
-	
-	vec3 lightVector = -normalize(lightDirection);
-	float brightness = max(dot(lightVector, normalize(inNormal)), 0.0);
+
+	float brightness = 0.0f;
+
+	for (int i = 0; i < 9; i++)
+	{
+        vec3 lightVector = -normalize(object.lights[i]);
+        brightness += lights.effect[i] * max(dot(lightVector, inNormal), 0.0);
+	}
 
 	outColour = vec4((object.brightness + brightness) * diffuse, 1.0f);
 }
