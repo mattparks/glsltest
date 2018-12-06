@@ -272,30 +272,8 @@ void LoadUniformBlock(ShaderReflection &reflection, const glslang::TProgram &pro
 }
 
 void LoadProgram(ShaderReflection &reflection, const glslang::TProgram &program, const VkShaderStageFlags &stageFlag)
-{	// Uniform blocks
-	for (int32_t i = program.getNumLiveUniformBlocks() - 1; i >= 0; i--)
-	{
-		fprintf(stdout, "UB %s: %i\n", program.getUniformBlockName(i),
-		        program.getUniformBlockTType(i)->getQualifier().layoutPushConstant); // FIXME
-	}
-
-	// Uniforms
-	for (int32_t i = 0; i < program.getNumLiveUniformVariables(); i++)
-	{
-		if (program.getUniformBinding(i) == -1) // Will be part of a uniform block
-		{
-			fprintf(stdout, "U %s: %i\n", program.getUniformName(i),
-				static_cast<int32_t>(sizeof(float) * program.getUniformArraySize(i) * program.getUniformTType(i)->computeNumComponents())); // FIXME
-		}
-	}
-
-	// Vertex attributes
-	for (int32_t i = 0; i < program.getNumLiveAttributes(); i++)
-	{
-		fprintf(stdout, "VA %s: %i\n", program.getAttributeName(i),
-		        program.getAttributeTType(i)->getQualifier().layoutLocation); // FIXME
-	}
-	/*// Uniform blocks
+{
+	// Uniform blocks
 	for (int32_t i = program.getNumLiveUniformBlocks() - 1; i >= 0; i--)
 	{
 		LoadUniformBlock(reflection, program, stageFlag, i);
@@ -311,7 +289,7 @@ void LoadProgram(ShaderReflection &reflection, const glslang::TProgram &program,
 	for (int32_t i = 0; i < program.getNumLiveAttributes(); i++)
 	{
 		LoadVertexAttribute(reflection, program, stageFlag, i);
-	}*/
+	}
 }
 
 TBuiltInResource GetResources()
@@ -472,7 +450,7 @@ void Process(ShaderReflection &reflection, const std::string &source, const VkSh
 	}
 
 	program.buildReflection();
-	program.dumpReflection();
+//	program.dumpReflection();
 	LoadProgram(reflection, program, stageFlag);
 
 	glslang::SpvOptions spvOptions;
@@ -501,7 +479,7 @@ int main(int argc, char **argv)
 
 	auto reflection = ShaderReflection{};
 	Process(reflection, ReadFile(currentDirectory + "/sample.vert"), VK_SHADER_STAGE_VERTEX_BIT);
-//	Process(reflection, ReadFile(currentDirectory + "/sample.frag"), VK_SHADER_STAGE_FRAGMENT_BIT);
+	Process(reflection, ReadFile(currentDirectory + "/sample.frag"), VK_SHADER_STAGE_FRAGMENT_BIT);
 	fprintf(stdout, "%s\n", reflection.ToString().c_str());
 
 	glslang::FinalizeProcess();
