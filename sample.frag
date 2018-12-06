@@ -28,11 +28,11 @@ void main()
 
 	float brightness = 0.0f;
 
-	for (int i = 0; i < 9; i++)
-	{
+    for (int i = 0; i < 9; i++)
+    {
         vec3 lightVector = -normalize(object.lights[i]);
         brightness += lights.effect[i] * max(dot(lightVector, inNormal), 0.0);
-	}
+    }
 
 	outColour = vec4((object.brightness + brightness) * diffuse, 1.0f);
 }

@@ -1,0 +1,53 @@
+`ENABLE_AMD_EXTENSIONS=OFF` `ENABLE_NV_EXTENSIONS=OFF` `ENABLE_OPT=OFF`
+;; vertex shader
+C:\Users\mattp\Desktop\glsltest\cmake-build-debug\bin\glsltest.exe
+Uniform reflection:
+UboObject.transform: offset 144, type 8b5c, size 1, index 0, binding -1, stages 1
+UboScene.projection: offset 0, type 8b5c, size 1, index 1, binding -1, stages 1
+UboScene.view: offset 64, type 8b5c, size 1, index 1, binding -1, stages 1
+UboScene.cameraPos: offset 128, type 8b51, size 1, index 1, binding -1, stages 1
+
+Uniform block reflection:
+UboObject: offset -1, type ffffffff, size 212, index -1, binding 1, stages 0
+UboScene: offset -1, type ffffffff, size 140, index -1, binding 0, stages 0
+
+Vertex attribute reflection:
+inPosition: offset 0, type 8b51, size 0, index 0, binding -1, stages 0
+inUv: offset 0, type 8b50, size 0, index 0, binding -1, stages 0
+inNormal: offset 0, type 8b51, size 0, index 0, binding -1, stages 0
+
+UB UboScene: 0
+UB UboObject: 0
+U UboObject.transform: 64
+U UboScene.projection: 64
+U UboScene.view: 64
+U UboScene.cameraPos: 12
+VA inPosition: 0
+VA inUv: 1
+VA inNormal: 2
+
+
+Process finished with exit code 0
+
+;; fragment shader
+C:\Users\mattp\Desktop\glsltest\cmake-build-debug\bin\glsltest.exe
+Uniform reflection:
+samplerDiffuse: offset -1, type 8b5e, size 1, index -1, binding 2, stages 16
+UboObject.lights: offset 0, type 8b51, size 9, index 0, binding -1, stages 16
+PushLights.effect: offset 0, type 1406, size 9, index 1, binding -1, stages 16
+UboObject.brightness: offset 208, type 1406, size 1, index 0, binding -1, stages 16
+
+Uniform block reflection:
+UboObject: offset -1, type ffffffff, size 212, index -1, binding 1, stages 0
+PushLights: offset -1, type ffffffff, size 36, index -1, binding -1, stages 0
+
+Vertex attribute reflection:
+
+UB PushLights: 1
+UB UboObject: 0
+U UboObject.lights: 972
+U PushLights.effect: 324
+U UboObject.brightness: 4
+
+
+Process finished with exit code 0
